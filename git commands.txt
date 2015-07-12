@@ -1,0 +1,28 @@
+git clone ssh://liuyang@192.168.9.142:45434/dir1/project -b master
+
+git push ssh://liuyang@192.168.9.142:45434/dir/project HEAD:refs/for/master
+
+
+代码提交后未通过验证被打回，多次以后，只进行了本地提交，想要回滚，目的是提交所有更改：
+1 git log 查看提交通过的版本信息（历史版本）
+2 git reset --hard [想要回退的版本]
+3 开始merge
+
+
+git clone ssh://liuyang@192.168.9.142:42354/dir/project -b master
+git push ssh://liuyang@192.168.9.142:34545/dir/project
+HEAD:refs/for/master
+
+
+1. layout drawable variety
+
+2. hide
+
+solve 1,2
+
+3. the start angle of the animation can't be controled
+
+------------ Animation summary ----------------
+
+
+<string name="promt_pin_backup">"You can input pin to get some prompt of password"</string>

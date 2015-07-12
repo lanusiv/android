@@ -1,0 +1,174 @@
+install ubuntu
+
+分区：其他选项
+引导分区 -- 100M
+主分区 -- /  (相当于C盘)
+交换分区（swap） -- 物理内存大小
+/home分区 -- /home (D盘）
+
+======安装JDK
+
+在Ubuntu 13.04下安装 jdk-7u10-linux-x64.tar.gz
+总的原则：将jdk-7u10-linux-x64.tar.gz压缩包解压至/usr/lib/jdk，设置jdk环境变量并将其修改为系统默认的jdk
+1.将jdk-7u5-linux-x64.tar.gz拷贝到/usr/lib/jdk/目录下面，这里如果没有jdk文件夹，则创建该文件夹,命令:
+    sudo mkdir jdk  //创建文件夹jdk
+    sudo cp -r  ~/download/jdk-7u10-linux-x64.tar.gz  /usr/lib/jdk/          //把下载的文件拷贝到新创建的目录下面
+    sudo tar -zxvg jdk-7u10-linux-x64.tar.gz    //解压缩文件
+2.设置环境变量，用gedit打开/etc/profile文件
+    sudo gedit /etc/profile
+    在文件的最后面增加：
+    export JAVA_HOME=/usr/lib/jdk/jdk1.7.0_10
+    export JRE_HOME=/usr/lib/jdk/jdk1.7.0_10/jre
+    export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
+    export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+
+3.将系统默认的jdk修改过来
+    $ sudo update-alternatives --install /usr/bin/java java /usr/lib/jdk/jdk1.7.0_10/bin/java 300
+    $ sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jdk/jdk1.7.0_10/bin/javac 300
+    $ sudo update-alternatives --config java
+    $ sudo update-alternatives --config javac
+4.检测，输入java -version
+    java version "1.7.0_10"
+    Java(TM) SE Runtime Environment (build 1.7.0_10-b18)
+    Java HotSpot(TM) 64-Bit Server VM (build 23.6-b04, mixed mode)linux
+Jdk安装成功！
+
+
+++++++++++++++++++++++++++++++++++++++++++++++
+ubuntu下JDK配置本质上和win是一样的：
+1、去官网下载JDK7，找jdk-7u21-linux-i586.tar.gz并下载：http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
+2、解压后得到名字为jdk1.7.0_21的文件夹，将其复制到 /usr/lib/jvm下（需要新建jvm文件夹）。
+3、配置jdk环境变量：
+在启动终端并输入
+[ruby] view plaincopy
+gedit /etc/profile  
+在末尾添加一下配置，保存并退出
+[ruby] view plaincopy
+#set jdk environment  
+export JAVA_HOME=/usr/lib/jvm/jdk1.7.0_21  
+export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib:$CLASSPATH  
+export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH  
+终端输入一下命令使配置生效
+[ruby] view plaincopy
+source /etc/profile  
+4、查看配置是否成功。在终端输入
+[ruby] view plaincopy
+java -version  
+如果显示版本是1.7.0.21则配置成功，如下显示：
+[ruby] view plaincopy
+java version "1.7.0_21"  
+Java(TM) SE Runtime Environment (build 1.7.0_21-b11)  
+Java HotSpot(TM) Server VM (build 23.21-b01, mixed mode)  
+如果显示仍是openJDK，执行步骤5，再测试
+5、配置默认JDK，ubuntu下默认JDK是openJDK。。终端输入
+[ruby] view plaincopy
+sudo update-alternatives --install /usr/lib/java java /usr/lib/jvm/jdk1.7.0_17/bin/java 300  
+sudo update-alternatives --install /usr/lib/javac javac /usr/lib/jvm/jdk1.7.0_17/bin/javac 300  
+执行下面命令，配置需要默认的JDK
+[ruby] view plaincopy
+sudo update-alternatives --config java  
+会列出jdk版本，其中被“*”标注的为默认JDK。如果要维持当前默认JDK，直接按回车键即可；否则输入相应JDK的编号将其设置为默认版本。
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+=======安装tomcat
+
+
+=======安装mysql
+
+	sudo apt-get install mysql-server
+	安装mysql workbench
+
+=======安装vmware
+
+========================================================================================================
+
+1.下载安装包：
+    VMware-Workstation-Full-9.0.2-1031769.i386.bundle
+    官网上找，需要注册。
+ 
+2.将文件增加可执行权限。
+    sudo chmod +x VMware-Workstation-Full-9.0.2-1031769.i386.bundle
+    
+
+****NO NEED	3. 安装前需要安装一下内核源码，因为 VMware 可能会需要重编模块
+****	    	sudo apt-get install linux-headers-'uname -r'
+ 
+4. 安装 VMware。
+    sudo ./VMware-Workstation-Full-9.0.2-1031769.i386.bundle
+
+5. 激活
+    运行：
+        命令行：vmware
+        或者按windows（super）键，搜索vmware，点击运行
+    a. 找到 help-》enter license key 点击。
+        弹出框点击Enter license key...   输入序列号。
+        如果你的也不弹框，请选择 下面 b方式：
+    b. 命令行运行：
+        sudo /usr/lib/vmware/bin/vmware-vmx --new-sn xxxxx-xxxxx-xxxxx-xxxxx
+ 
+大功告成，enjoy it！
+
+========================================================================================================
+
+
+
+安装eclipse，创建快捷方式
+
+One way to install eclipse:
+
+1.Extract the eclipse.XX.YY.tar.gz using
+	$ tar -zxvf eclipse.XX.YY.tar.gz
+2.Become root
+	$ sudo su
+3.Copy the extracted folder to /opt
+	# cp -r eclipse.XX.YY /opt
+4.Create desktop file and place it into /usr/share/applications
+	# gedit /usr/share/applications/eclipse.desktop
+   and copy the following to the eclipse.desktop file.
+	
+	[Desktop Entry]
+	Name=Eclipse 
+	Type=Application
+	Exec=eclipse
+	Terminal=false
+	Icon=eclipse
+	Comment=Integrated Development Environment
+	NoDisplay=false
+	Categories=Development;IDE
+	Name[en]=eclipse.desktop
+
+5.Create a syslink in /usr/local/bin
+	# cd /usr/local/bin
+	# ln -s /opt/eclipse/eclipse
+
+That's it.
+
+Another simplest way to:
+	chown -R root:lanusiv eclipse/eclipse
+		      lanusiv is your current system username
+
+11. 创建桌面连接：
+      进入Desktop -> 右击鼠标 -> Create New -> Link too Application... -> Tab "Application" -> Command -> '/opt/ee-eclipse/eclipse3.2RC7/eclipse/eclipse' -data /home/kubuntu/ews-eclipse3.2RC7 -> Tab "General -> "Icon" -> /opt/ee-eclipse/eclipse3.2RC7/eclipse/icon.xpm -> OK
+
+not yet understand~~~
+
+tomcat
+sudo service tomcat start
+
+
+Ubuntu命令
+删除文件夹
+mkdir 目录名 创建一个目录
+rmdir 空目录名 删除一个空目录
+rm 文件名 文件名 删除一个文件或多个文件
+rm -rf 非空目录名 删除一个非空目录下的一切
+
+sudo apt-get installl xxxxx
+sudo apt-get remove
+
+
+
+安装chrome,goagent

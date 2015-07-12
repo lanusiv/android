@@ -1,0 +1,36 @@
+====win8找回linux ubuntu 和 用win8引导linxu ubuntu====
+
+1. 用u盘启动进入ubuntu 这里我们选择试用ubuntu 而不是安装ubuntu
+
+2. 按 Ctrl+Alt+T 启动终端  
+
+3. 进入终端 输入一下命令：
+
+      1) sudo -i    #进入超级管理员模式
+
+      2) fdisk -l     #扫描磁盘 确定linux所在的分区位置
+
+      3) mount     /dev/sda7    /mnt   #这里的sda7 是上面通过扫描得来的 不同的电脑是不同的
+      4) grub-install    --root-directory=/mnt    /dev/sda  #将grub重写到mbr中(或者 --boot-directory=/mnt /dev/sda)
+
+      5）#提示finished  no error  的字样  就成功了
+      
+      6) 重启后先进入Ubuntu，然后运行命令：sudo update-grub   #更新开机启动项，windows 8启动项。
+
+
+ ****************add*****************
+2014年04月27日 星期日 15时33分16秒 
+
+sudo grub-install /dev/sda
+
+ ****************add*****************
+
+
+====Windows 8.1  U盘启动失败问题====
+
+Windows 7 USB DVD Download Tool 制作的U盘无法启动安装 Windows 8.1
+解决办法：
+	以管理员身份运行CMD，执行如下命令：
+	bootsect /nt60 X: （其中bootsec位于ISO光盘根目录的boot目录中	，X是当前U盘在系统中的盘符）
+
+	以上操作后即可使得制作后的U盘可以引导启动。
