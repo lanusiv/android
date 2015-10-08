@@ -43,6 +43,7 @@ public class BootStartUpAdapter extends RecyclerView.Adapter<BootStartUpAdapter.
         holder.mTextView.setText(title);
         holder.imageView.setImageDrawable(app.getIcon());
         holder.itemView.setTag(app.getStartUpReceiver());
+        holder.mSwitch.setChecked(app.isBootStartEnabled());
     }
 
     @Override

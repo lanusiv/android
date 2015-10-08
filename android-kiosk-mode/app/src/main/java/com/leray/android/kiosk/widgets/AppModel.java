@@ -22,6 +22,8 @@ public class AppModel {
 
     private String startUpReceiver;
 
+    private boolean bootStartEnabled = false;
+
     public AppModel(Context context, ApplicationInfo info) {
         mContext = context;
         mInfo = info;
@@ -85,5 +87,13 @@ public class AppModel {
 
     public void setStartUpReceiver(String startUpReceiver) {
         this.startUpReceiver = startUpReceiver;
+    }
+
+    public boolean isBootStartEnabled() {
+        return bootStartEnabled;
+    }
+
+    public void setBootStartEnabled(boolean bootStartEnabled) {
+        this.bootStartEnabled = bootStartEnabled;
     }
 }

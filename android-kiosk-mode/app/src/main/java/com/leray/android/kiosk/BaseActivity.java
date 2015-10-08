@@ -288,21 +288,12 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
         for (ResolveInfo resolveInfo : resolveInfoList) {
             ComponentName mComponentName = new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name);
             Log.d(TAG, resolveInfo.activityInfo.packageName + " ===== " + resolveInfo.activityInfo.name);
-//            Log.d(TAG, "COMPONENT_ENABLED_STATE:" + getPackageManager().getComponentEnabledSetting(mComponentName) + "\tpackageName:" + resolveInfo.activityInfo.packageName);
+            Log.d(TAG, "COMPONENT_ENABLED_STATE:" + getPackageManager().getComponentEnabledSetting(mComponentName) + "\tpackageName:" + resolveInfo.activityInfo.packageName);
         }
     }
 
     public List<AppModel> getBootStartUpReceivers(List<Map<String, Object>> appList) {
         List<AppModel> list = new ArrayList<>();
-//        Intent intent = new Intent(Intent.ACTION_BOOT_COMPLETED);
-//        List<ResolveInfo> resolveInfoList = getPackageManager().queryBroadcastReceivers(intent, PackageManager.GET_DISABLED_COMPONENTS);
-//        for (ResolveInfo resolveInfo : resolveInfoList) {
-//            ComponentName mComponentName = new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name);
-//            Log.d(TAG, resolveInfo.activityInfo.packageName + " ===== " + resolveInfo.activityInfo.name);
-////            Log.d(TAG, "COMPONENT_ENABLED_STATE:" + getPackageManager().getComponentEnabledSetting(mComponentName) + "\tpackageName:" + resolveInfo.activityInfo.packageName);
-//
-//        }
-
         for (Map<String, Object> item : appList) {
             ApplicationInfo appinfo = (ApplicationInfo) item.get("appinfo");
             String pkg = appinfo.packageName;
@@ -310,6 +301,9 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
             if (receiver != null) {
                 AppModel app = new AppModel(this, appinfo);
                 app.setStartUpReceiver(pkg + "/" + receiver);
+                ComponentName mComponentName = new ComponentName(pkg, receiver);
+                boolean bootStartEnabled = ! (getPackageManager().getComponentEnabledSetting(mComponentName) == PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
+                app.setBootStartEnabled(bootStartEnabled);
                 list.add(app);
                 Log.d("boot receiver", receiver);
             }
@@ -327,6 +321,7 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
         for (ResolveInfo resolveInfo : resolveInfoList) {
             ComponentName mComponentName = new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name);
             Log.d(TAG, resolveInfo.activityInfo.packageName + " ===== " + resolveInfo.activityInfo.name);
+            boolean bootStartEnabled = ! (getPackageManager().getComponentEnabledSetting(mComponentName) == PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
 //            Log.d(TAG, "COMPONENT_ENABLED_STATE:" + getPackageManager().getComponentEnabledSetting(mComponentName) + "\tpackageName:" + resolveInfo.activityInfo.packageName);
             if (packageName.equals(resolveInfo.activityInfo.packageName)) {
                 receiver = resolveInfo.activityInfo.name;
