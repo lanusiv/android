@@ -234,7 +234,9 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
         }.execute();
     }
 
-
+    /**
+     * 隐藏输入法
+     */
     public void hideIme() {
         // Check if no view has focus:
         View view = this.getCurrentFocus();
@@ -244,12 +246,14 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
         }
     }
 
-    private static final String BOOT_START_PERMISSION = "android.permission.RECEIVE_BOOT_COMPLETED";
-    private ArrayList<Map<String, Object>> list;
-
+    /**
+     * 查询安装的app列表
+     * @return
+     */
     public List<Map<String, Object>> queryInstalledApps() {
+        final String BOOT_START_PERMISSION = "android.permission.RECEIVE_BOOT_COMPLETED";
         List<ApplicationInfo> packages = getPackageManager().getInstalledApplications(0);
-        list = new ArrayList<>(packages.size());
+        ArrayList<Map<String, Object>> list = new ArrayList<>(packages.size());
         Iterator<ApplicationInfo> appInfoIterator = packages.iterator();
 
         while (appInfoIterator.hasNext()) {
@@ -271,17 +275,30 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
         return list;
     }
 
-    private boolean isSystemApp(ApplicationInfo appInfo) {
+    /**
+     * 判断是否是系统应用
+     * @param appInfo
+     * @return
+     */
+    public boolean isSystemApp(ApplicationInfo appInfo) {
         return (appInfo.flags & appInfo.FLAG_SYSTEM) > 0;
     }
 
-    private boolean isSystemApp1(ApplicationInfo appInfo) {
+    /**
+     * 判断是否是系统应用
+     * @param appInfo
+     * @return
+     */
+    public boolean isSystemApp1(ApplicationInfo appInfo) {
         /**
          * uid是应用程序安装时由系统分配(1000 ～ 9999为系统应用程序保留)
          */
         return appInfo.uid > 1000;
     }
 
+    /**
+     * 查询开机启动app列表
+     */
     public void getBootStartupApps() {
         Intent intent = new Intent(Intent.ACTION_BOOT_COMPLETED);
         List<ResolveInfo> resolveInfoList = getPackageManager().queryBroadcastReceivers(intent, PackageManager.GET_DISABLED_COMPONENTS);
@@ -292,6 +309,11 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
         }
     }
 
+    /**
+     * 获取开机启动app列表，不包括系统应用
+     * @param appList
+     * @return
+     */
     public List<AppModel> getBootStartUpReceivers(List<Map<String, Object>> appList) {
         List<AppModel> list = new ArrayList<>();
         for (Map<String, Object> item : appList) {
@@ -311,6 +333,11 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
         return list;
     }
 
+    /**
+     * 根据包名获取开机相应app监听开机启动的receiver
+     * @param packageName
+     * @return
+     */
     public String queryReceiverByPackage(String packageName) {
         if (TextUtils.isEmpty(packageName)) {
             return null;
@@ -328,5 +355,27 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
             }
         }
         return receiver;
+    }
+
+    /**
+     * 根据包名查询pid
+     * @param packagename
+     * @return
+     */
+    public int findPIDbyPackageName(String packagename) {
+        int result = -1;
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        if (am != null) {
+            for (ActivityManager.RunningAppProcessInfo pi : am.getRunningAppProcesses()){
+                Log.d(TAG, "RunningAppProcessInfo ---- " + pi.processName);
+                if (pi.processName.equalsIgnoreCase(packagename)) {
+                    result = pi.pid;
+                }
+                if (result != -1) break;
+            }
+        } else {
+            result = -1;
+        }
+        return result;
     }
 }

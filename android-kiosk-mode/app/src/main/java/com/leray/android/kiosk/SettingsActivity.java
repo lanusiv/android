@@ -2,11 +2,7 @@ package com.leray.android.kiosk;
 
 import android.app.ActivityManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -31,7 +27,14 @@ import java.util.List;
 
 import static com.leray.android.kiosk.services.KioskService.SINGLE_APPLICATION;
 
-
+/**
+ * kiosk mode 主屏幕页，在主屏幕页为普通模式
+ * 功能:：1. 进入single application
+ *       2. 选择single application
+ *       3. 进入系统设置
+ *       4. 隐藏导航栏（需要root权限）
+ *       5. 重启设备（需要root权限）
+ */
 public class SettingsActivity extends BaseActivity {
 
     private static final String TAG = "SettingsActivity";
@@ -44,8 +47,6 @@ public class SettingsActivity extends BaseActivity {
     boolean currentFocus;           // To keep track of activity's window focus
     boolean isPaused;               // To keep track of activity's foreground/background status
 
-//    private boolean allowLeave = false;
-//    private boolean firstStart = false;
     public static final int FLAG_HOMEKEY_DISPATCHED = 0x80000000;
     private boolean hideNaviBar = true;
 
@@ -55,13 +56,10 @@ public class SettingsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 //        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        this.getWindow().setFlags(FLAG_HOMEKEY_DISPATCHED, FLAG_HOMEKEY_DISPATCHED);
+        this.getWindow().setFlags(FLAG_HOMEKEY_DISPATCHED, FLAG_HOMEKEY_DISPATCHED);  // 屏蔽home键
         setContentView(R.layout.activity_settings);
 
-        getSupportActionBar().hide();
-
-        // every time someone enters the kiosk mode, set the flag true
-//        PrefUtils.setKioskModeActive(true, getApplicationContext());
+        getSupportActionBar().hide();  // 隐藏actionbar
 
         btnApp = (Button) findViewById(R.id.btnApp);
         btnControlNavibar = (Button) findViewById(R.id.btnControlNavibar);
@@ -77,20 +75,16 @@ public class SettingsActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         final String app = PreferencesUtils.getString(this, SINGLE_APPLICATION);
-        Log.d("hello", "SettingsActivity onResume " + app);
-/*
+        Log.d("hello", "Single mode application: " + app);
+        /*
         SQLiteHelper sqLiteHelper = new SQLiteHelper(this);
         List<AppInfo> list = sqLiteHelper.getAppInfoList();
         */
-        List<AppModel> list = getBootStartUpReceivers(queryInstalledApps());
-        if (list == null) {
-        } else {
-            Log.d("hello", "list " + list.size());
-            mRecyclerView.setAdapter(new BootStartUpAdapter(this, list));
-        }
+        // 获取开机自启动app列表
+        displayBootStartApps();
         // Activity's been resumed
         isPaused = false;
-
+        // 加载single application
         if (!TextUtils.isEmpty(app) && mSingleAppInfo != null) {
             Log.d("hello", "==================================== ");
             singleAppView.setVisibility(View.VISIBLE);
@@ -107,19 +101,6 @@ public class SettingsActivity extends BaseActivity {
                 }
             });
         }
-        /*
-        if (TextUtils.isEmpty(app)) {
-            return;
-        }
-        btnApp.setVisibility(View.VISIBLE);
-        btnApp.setText(app);
-        btnApp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startSingleApplication(app);
-            }
-        });
-        */
     }
 
     @Override
@@ -127,9 +108,6 @@ public class SettingsActivity extends BaseActivity {
         super.onPause();
         // Activity's been paused
         isPaused = true;
-//        if (!allowLeave) {
-//            blockOtherTasks();
-//        }
     }
 
     @Override
@@ -149,80 +127,14 @@ public class SettingsActivity extends BaseActivity {
         super.onAttachedToWindow();
     }
 
-    private void blockOtherTasks() {
-        ActivityManager activityManager = (ActivityManager) getApplicationContext()
-                .getSystemService(ACTIVITY_SERVICE);
-
-        activityManager.moveTaskToFront(getTaskId(), 0);
-    }
-
-    public void onClick(View view) {
-//        allowLeave = true;
-        int vid = view.getId();
-        switch (vid) {
-            case R.id.btnChooseApp:
-                chooseApp();
-                break;
-            case R.id.btnSettings:
-                goSettings();
-                break;
-            case R.id.btnControlNavibar:
-                hideOrShowNaviBar();
-                break;
-            case R.id.btnReboot:
-                reboot();
-                break;
-            case R.id.singleAppView:
-                String packageName = mSingleAppInfo.getApplicationPackageName();
-                startSingleApplication(packageName);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void chooseApp() {
-        Intent intent = new Intent();
-        intent.setClass(this, ChooseAppActivity.class);
-        startActivityForResult(intent, RESULT_OK);
-    }
-
-    private void goSettings() {
-        Intent intent = new Intent();
-        intent.setComponent(new ComponentName("com.android.settings", "com.android.settings.Settings"));
-        startActivity(intent);
-        PreferencesUtils.putBoolean(this, "isAdminInSettings", true);
-    }
-
-    private void hideOrShowNaviBar() {
-        if (hideNaviBar) {
-            hideNaviBar = false;
-            killNavigationBar();
-            hideSystemBar();
-            btnControlNavibar.setText("显示导航栏");
-        } else {
-            hideNaviBar = true;
-            showNavigationBar();
-            btnControlNavibar.setText("隐藏导航栏");
-        }
-    }
-
-    private void startSingleApplication(String app) {
-        startService(new Intent(SettingsActivity.this, KioskService.class));
-        Intent intent = getPackageManager().getLaunchIntentForPackage(app);
-        if (intent != null) {
-            startActivity(intent);
-        }
-    }
-
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         currentFocus = hasFocus;
         if(!hasFocus) {
             // Close every kind of system dialog
-            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-            sendBroadcast(closeDialog);
+//            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+//            sendBroadcast(closeDialog);
         }
     }
 
@@ -247,13 +159,112 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
+    /**
+     * called in onPause(), when user navigate to leave this app, move the app back to front immediately
+     */
+    private void blockOtherTasks() {
+        ActivityManager activityManager = (ActivityManager) getApplicationContext()
+                .getSystemService(ACTIVITY_SERVICE);
+        activityManager.moveTaskToFront(getTaskId(), 0);
+    }
+
+    public void onClick(View view) {
+        int vid = view.getId();
+        switch (vid) {
+            case R.id.btnChooseApp:
+                chooseApp();
+                break;
+            case R.id.btnSettings:
+                goSettings();
+                break;
+            case R.id.btnControlNavibar:
+                hideOrShowNaviBar();
+                break;
+            case R.id.btnReboot:
+                reboot();
+                break;
+            case R.id.singleAppView:
+                String packageName = mSingleAppInfo.getApplicationPackageName();
+                startSingleApplication(packageName);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 选择single application
+     */
+    private void chooseApp() {
+        Intent intent = new Intent();
+        intent.setClass(this, ChooseAppActivity.class);
+        startActivityForResult(intent, RESULT_OK);
+    }
+
+    /**
+     * 进入系统设置
+     */
+    private void goSettings() {
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName("com.android.settings", "com.android.settings.Settings"));
+        startActivity(intent);
+        PreferencesUtils.putBoolean(this, "isAdminInSettings", true);
+    }
+
+    /**
+     * 隐藏/显示navi bar, 需要root权限
+     */
+    private void hideOrShowNaviBar() {
+        if (hideNaviBar) {
+            hideNaviBar = false;
+            killNavigationBar();
+            hideSystemBar();
+            btnControlNavibar.setText("显示导航栏");
+        } else {
+            hideNaviBar = true;
+            showNavigationBar();
+            btnControlNavibar.setText("隐藏导航栏");
+        }
+    }
+
+    /**
+     * 启动single application
+     * @param app
+     */
+    private void startSingleApplication(String app) {
+        // 同时开启kiosk服务
+        startService(new Intent(SettingsActivity.this, KioskService.class));
+        Intent intent = getPackageManager().getLaunchIntentForPackage(app);
+        if (intent != null) {
+            startActivity(intent);
+        }
+    }
+
+    /**
+     * 获取开机自启动app列表
+     */
+    private void displayBootStartApps() {
+        List<AppModel> list = getBootStartUpReceivers(queryInstalledApps());
+        if (list != null) {
+            mRecyclerView.setAdapter(new BootStartUpAdapter(this, list));
+        }
+    }
+
+    /**
+     * 重启设备, 需要root权限
+     */
     private void reboot() {
         boolean isRooted = ShellUtils.checkRootPermission();
         if (isRooted) {
             String cmd = "reboot";
             ShellUtils.execCommand(cmd, true);
         }
-        disablePackages();
+    }
+
+    /**
+     * 测试方法，无用
+     */
+    private void test() {
         int pid = findPIDbyPackageName("com.android.systemui");
         Log.d(TAG, "pid = " + pid);
 //        android.os.Process.killProcess(pid);
@@ -263,43 +274,4 @@ public class SettingsActivity extends BaseActivity {
 
         getBootStartUpReceivers(queryInstalledApps());
     }
-
-    private void disablePackages() {
-        PackageManager pm = getPackageManager();
-        List<ApplicationInfo> list = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-
-//        for (ApplicationInfo app : list) {
-//            String pkg = app.packageName;
-//            Log.d("hello", "package name: " + pkg);
-//        }
-
-        String cmd = "pm disable com.gymcollegelargesize.o2o";
-        ShellUtils.execCommand(cmd, true);
-
-        Intent intent = new Intent(Intent.ACTION_BOOT_COMPLETED);
-        List<ResolveInfo> resolveInfoList = pm.queryBroadcastReceivers(intent, PackageManager.GET_DISABLED_COMPONENTS);
-        for (ResolveInfo resolveInfo : resolveInfoList) {
-            ComponentName mComponentName = new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name);
-            Log.d(TAG, "COMPONENT_ENABLED_STATE:" + pm.getComponentEnabledSetting(mComponentName) + "\tpackageName:" + resolveInfo.activityInfo.packageName);
-        }
-    }
-
-    public int findPIDbyPackageName(String packagename) {
-        int result = -1;
-        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        if (am != null) {
-            for (ActivityManager.RunningAppProcessInfo pi : am.getRunningAppProcesses()){
-                Log.d(TAG, "RunningAppProcessInfo ---- " + pi.processName);
-                if (pi.processName.equalsIgnoreCase(packagename)) {
-                    result = pi.pid;
-                }
-                if (result != -1) break;
-            }
-        } else {
-            result = -1;
-        }
-
-        return result;
-    }
-
 }

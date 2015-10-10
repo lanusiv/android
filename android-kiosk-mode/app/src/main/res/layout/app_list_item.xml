@@ -28,9 +28,11 @@
     <Switch
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
         android:id="@+id/switch1"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:textOff="禁用"
+        android:textOn="启用"
+        android:checked="false" />
 </RelativeLayout>

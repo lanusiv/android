@@ -49,11 +49,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.leray.android.kiosk.MainActivity"
-            android:label="@string/title_activity_settings" >
-        </activity>
-
         <activity android:name="com.leray.android.kiosk.ChooseAppActivity"
             android:label="@string/title_activity_choose_app"
             >
