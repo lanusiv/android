@@ -13,7 +13,9 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.leray.android.kiosk.services.KioskService;
 import com.leray.android.kiosk.utils.PreferencesUtils;
@@ -65,6 +67,13 @@ public class SettingsActivity extends BaseActivity {
         btnControlNavibar = (Button) findViewById(R.id.btnControlNavibar);
         singleAppView = findViewById(R.id.singleAppView);
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
+        mainLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return true;
+            }
+        });
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));//这里用线性显示 类似于listview
 //        mRecyclerView.setLayoutManager(new GridLayoutManager(this, 4));//这里用线性宫格显示 类似于grid view
@@ -148,6 +157,7 @@ public class SettingsActivity extends BaseActivity {
     @Override
     public void finish() {
 //        super.finish();
+        Toast.makeText(getApplicationContext(), "finish()", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -217,12 +227,14 @@ public class SettingsActivity extends BaseActivity {
     private void hideOrShowNaviBar() {
         if (hideNaviBar) {
             hideNaviBar = false;
-            killNavigationBar();
+//            killNavigationBar();
+            playNavigationBar(true);
             hideSystemBar();
             btnControlNavibar.setText("显示导航栏");
         } else {
             hideNaviBar = true;
-            showNavigationBar();
+//            showNavigationBar();
+            playNavigationBar(false);
             btnControlNavibar.setText("隐藏导航栏");
         }
     }

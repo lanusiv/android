@@ -12,6 +12,8 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -179,57 +181,147 @@ public class BaseActivity extends ActionBarActivity implements View.OnSystemUiVi
                     procID = "42"; //ICS AND NEWER
                 }
                 String[] cmds = {"su", "-c", "service call activity " + procID + " s16 com.android.systemui"};
-                ret = ShellUtils.execCommand(cmds, true);
+                String cmd = "am startservice -n com.android.systemui/.SystemUIService";
+                ret = ShellUtils.execCommand(cmd, true);
                 return ret;
             }
 
             @Override
             protected void onPostExecute(ShellUtils.CommandResult commandResult) {
-                if (commandResult == null) {
-                    return;
-                }
-                new AlertDialog.Builder(BaseActivity.this).setTitle("Hint")
-                        .setMessage("\n                   killNavigationBar                  " +
-                                "\n    error msg:" + commandResult.errorMsg
-                                + "\n success msg: " + commandResult.successMsg
-                                + "\n\n")
-                        .create()
-                        .show();
+                showResultDialog(commandResult);
             }
         }.execute();
+    }
+
+    private void showResultDialog(ShellUtils.CommandResult commandResult) {
+        if (commandResult == null) {
+            return;
+        }
+        new AlertDialog.Builder(BaseActivity.this).setTitle("Hint")
+                .setMessage("\n                   killNavigationBar                  " +
+                        "\n    error msg:" + commandResult.errorMsg
+                        + "\n success msg: " + commandResult.successMsg
+                        + "\n\n")
+                .create()
+                .show();
+    }
+
+    /**
+     * 隐藏系统状态栏和导航栏
+     */
+    public void playNavigationBar(final boolean hide) {
+        if (hide) {
+            mHandler.sendEmptyMessage(MSG_HIDE_NAVI_BAR);
+        } else {
+            mHandler.sendEmptyMessage(MSG_SHOW_NAVI_BAR);
+        }
+//        new AsyncTask<Void, Void, ShellUtils.CommandResult>() {
+//            @Override
+//            protected ShellUtils.CommandResult doInBackground(Void... params) {
+//                ShellUtils.CommandResult ret = null;
+//                String procID = "79"; //HONEYCOMB AND OLDER
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+//                    procID = "42"; //ICS AND NEWER
+//                }
+//                String[] cmds = {"su", "-c", "service call activity " + procID + " s16 com.android.systemui"};
+//                String cmd = "am startservice -n com.android.systemui/.SystemUIService";
+//                if (hide) {
+//                    ret = ShellUtils.execCommand(cmds, true);
+//                    cancel(false);
+//                } else {
+//                    ret = ShellUtils.execCommand(cmd, true);
+//                }
+//
+//                return ret;
+//            }
+//
+//            @Override
+//            protected void onPostExecute(ShellUtils.CommandResult commandResult) {
+//                if (commandResult == null) {
+//                    Toast.makeText(getApplicationContext(), "onPostExecute  null ============", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+//                new AlertDialog.Builder(BaseActivity.this).setTitle("Hint")
+//                        .setMessage("\n                   killNavigationBar                  " +
+//                                "\n    error msg:" + commandResult.errorMsg
+//                                + "\n success msg: " + commandResult.successMsg
+//                                + "\n\n")
+//                        .create()
+//                        .show();
+//            }
+//        }.execute();
+    }
+
+    private static final int MSG_HIDE_NAVI_BAR = 1;
+    private static final int MSG_SHOW_NAVI_BAR = 2;
+    private Handler mHandler = new MyHandler();
+    private static class MyHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            int what = msg.what;
+            switch (what) {
+                case MSG_HIDE_NAVI_BAR:
+                    hideNaviBar();
+                    break;
+                case MSG_SHOW_NAVI_BAR:
+                    showNaviBar();
+                    break;
+                default:
+                    return;
+            }
+        }
+    }
+
+    private static void hideNaviBar() {
+        ShellUtils.CommandResult ret = null;
+        String procID = "79"; //HONEYCOMB AND OLDER
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            procID = "42"; //ICS AND NEWER
+        }
+        String[] cmds = {"su", "-c", "service call activity " + procID + " s16 com.android.systemui"};
+        ret = ShellUtils.execCommand(cmds, true);
+        Log.d("hello", "hideNaviBar, result: " + "\n                   killNavigationBar                  " +
+                "\n    error msg:" + ret.errorMsg
+                + "\n success msg: " + ret.successMsg
+                + "\n\n");
+    }
+
+    private static void showNaviBar() {
+        ShellUtils.CommandResult ret = null;
+        String cmd = "am startservice -n com.android.systemui/.SystemUIService";
+        ret = ShellUtils.execCommand(cmd, true);
+        Log.d("hello", "showNaviBar, result: " + "\n                   showNavigationBar                  " +
+                "\n    error msg:" + ret.errorMsg
+                + "\n success msg: " + ret.successMsg
+                + "\n\n");
     }
 
     /**
      * 显示系统状态栏和导航栏
      */
     public void showNavigationBar() {
+
         new AsyncTask<Void, Void, ShellUtils.CommandResult>() {
             @Override
             protected ShellUtils.CommandResult doInBackground(Void... params) {
+                Log.d("hello", "show navi bar ============");
                 ShellUtils.CommandResult ret = null;
-                String cmd = "su am startservice -n com.android.systemui/com.android.systemui.statusbar.StatusBarService";
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-                    cmd = "su am startservice -n com.android.systemui/.SystemUIService";
-                }
-                // String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib am startservice -n com.android.systemui/.SystemUIService";
-                String[] cmds = {/*"su", */"am startservice -n com.android.systemui/.SystemUIService"};
+//                String cmd = "su am startservice -n com.android.systemui/com.android.systemui.statusbar.StatusBarService";
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+//                    cmd = "am startservice -n com.android.systemui/.SystemUIService";
+//                }
+//                // String command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib am startservice -n com.android.systemui/.SystemUIService";
+////                String[] cmds = {/*"su", */"am startservice -n com.android.systemui/.SystemUIService"};
 //                String[] cmds = {"am","startservice","-n","com.android.systemui/com.android.systemui.statusbar.StatusBarService"};
-                ret = ShellUtils.execCommand(cmds, true);
+                String cmd = "am startservice -n com.android.systemui/.SystemUIService";
+                ret = ShellUtils.execCommand(cmd, true);
+                Log.d("hello", "showNavigationBar =============== " + cmd);
                 return ret;
             }
 
             @Override
             protected void onPostExecute(ShellUtils.CommandResult commandResult) {
-                if (commandResult == null) {
-                    return;
-                }
-                new AlertDialog.Builder(BaseActivity.this).setTitle("Hint")
-                        .setMessage("\n                   killNavigationBar                  " +
-                                "\n    error msg:" + commandResult.errorMsg
-                                + "\n success msg: " + commandResult.successMsg
-                                + "\n\n")
-                        .create()
-                        .show();
+                showResultDialog(commandResult);
             }
         }.execute();
     }
